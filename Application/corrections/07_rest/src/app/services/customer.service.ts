@@ -1,14 +1,35 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/do';
 
 import { Product } from '../model/product';
 
 @Injectable()
 export class CustomerService {
 
+  private API_URL = 'http://localhost:8080/rest/';
+
   products: Product[] = new Array<Product>();
 
-  addProduct(product: Product): void {
-    this.products.push(product);
+  constructor(
+    private http: HttpClient
+  ) {}
+
+  getBasket(): Observable<Product[]> {
+    return this.http.get(this.API_URL + 'basket')
+      .map((products: any[]) => {
+        return products.map(product => {
+          return new Product(product.title, product.description, product.photo, product.price, product.stock);
+        });
+      })
+      .do(products => this.products = products);
+ }
+
+  addProduct(product: Product): Observable<any> {
+    return this.http.post(this.API_URL + 'basket', product)
+      .do(() => this.products.push(product));
   }
 
   getTotal(): number {

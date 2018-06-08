@@ -1,5 +1,6 @@
 import { TestBed, inject } from '@angular/core/testing';
 import { UpperCasePipe } from '@angular/common';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 
 import { ProductService } from './product.service';
 import { Product } from '../model/product';
@@ -7,17 +8,27 @@ import { Product } from '../model/product';
 describe('ProductService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [ProductService, UpperCasePipe]
+      imports: [HttpClientTestingModule],
+      providers: [
+        ProductService,
+        UpperCasePipe,
+      ]
     });
   });
 
   it('should be created with 4 products',
-    inject([ProductService], (service: ProductService) => {
-      expect(service).toBeTruthy();
-      expect(service.getProducts().length).toBe(4);
-      service.getProducts().forEach(product => {
-        expect(product.title).toBe(product.title.toUpperCase());
+    inject([ProductService, HttpTestingController], (service: ProductService, http: HttpTestingController) => {
+      const mockedResponse = [
+        new Product('abc', '', '', 0, 0),
+        new Product('def', '', '', 0, 0)
+      ];
+      service.getProducts().subscribe(products => {
+        expect(products.length).toBe(2);
+        products.forEach(product => {
+          expect(product.title).toBe(product.title.toUpperCase());
+        });
       });
+      http.expectOne('http://localhost:8080/rest/products').flush(mockedResponse);
     })
   );
 

@@ -1,27 +1,37 @@
 import { Injectable } from '@angular/core';
 import { UpperCasePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/do';
 
 import { Product } from '../model/product';
 
 @Injectable()
 export class ProductService {
 
-  private products: Product[] = [
-    new Product('Product1', 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.', 'http://placehold.it/800x500', 10, 2),
-    new Product('Product2', 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.', 'http://placehold.it/800x500', 20, 2),
-    new Product('Product3', 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.', 'http://placehold.it/800x500', 30, 2),
-    new Product('Product4', 'Lorem ipsum dolor sit amet, consectetur adipisicing elit.', 'http://placehold.it/800x500', 40, 2)
-  ];
+  private API_URL = 'http://localhost:8080/rest/';
 
-  constructor(uppercase: UpperCasePipe) {
-    this.products = this.products.map(p => {
-      p.title = uppercase.transform(p.title);
-      return p;
-    });
-  }
+  private products: Product[];
 
-  getProducts(): Product[] {
-    return this.products;
+  constructor(
+    private uppercase: UpperCasePipe,
+    private http: HttpClient
+  ) {}
+
+  getProducts(): Observable<Product[]> {
+    return this.http.get(this.API_URL + 'products')
+      .map((products: any[]) => {
+        return products.map(product => {
+          return new Product(product.title, product.description, product.photo, product.price, product.stock);
+        });
+      })
+      .map(products => {
+        return products.map(product => {
+          product.title = this.uppercase.transform(product.title);
+          return product;
+        });
+      });
   }
 
   isTheLast(product: Product): boolean {

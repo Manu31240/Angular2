@@ -8,6 +8,11 @@ describe('SortPipe', () => {
     expect(pipe).toBeTruthy();
   });
 
+  it('should return empty array if the value is not defined', () => {
+    const pipe = new SortPipe();
+    expect(pipe.transform(undefined, 'title')).toEqual([]);
+  });
+
   it('should sort objects by property in argument', () => {
     const pipe = new SortPipe();
     const data = [
